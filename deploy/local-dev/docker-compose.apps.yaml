@@ -1,0 +1,48 @@
+version: '3'
+services:
+  # Deployment 1: API REST + gRPC Client (Go)
+  go-grpc-client:
+    build: 
+      context: ../go-grpc-client
+    ports:
+      - "8080:8080"
+    environment:
+      - GRPC_SERVER_ADDR=go-grpc-server:50051
+    depends_on:
+      - go-grpc-server
+
+  # Deployment 2: gRPC Server + Kafka Producer (Go)
+  go-grpc-server:
+    build: 
+      context: ../go-grpc-server
+    ports:
+      - "50051:50051"
+    environment:
+      - KAFKA_BROKER=kafka:9092
+      # Puerto interno de Kafka
+      - KAFKA_BROKER=kafka:29092
+    depends_on:
+      - kafka
+
+  # Deployment 3: Consumer (Go) + Writer to Valkey
+  go-consumer:
+    build: 
+      context: ../go-consumer
+    environment:
+      - KAFKA_BROKER=kafka:29092
+      - VALKEY_ADDR=valkey:6379
+    depends_on:
+      - kafka
+      - valkey
+
+  # API Rust (Entrada) - Opcional en docker si ya lo tienes local, pero mejor todo junto
+  rust-api:
+    build:
+      context: ../rust-api
+    ports:
+      - "5000:5000"
+    environment:
+      - GO_API_URL=http://go-grpc-client:8080
+      - PORT=5000
+    depends_on:
+      - go-grpc-client

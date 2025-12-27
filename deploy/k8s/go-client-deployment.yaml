@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: go-grpc-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: go-grpc-client
+  template:
+    metadata:
+      labels:
+        app: go-grpc-client
+    spec:
+      containers:
+        - name: go-grpc-client
+          image: localhost:5001/go-grpc-client:latest
+          env:
+            - name: GRPC_SERVER_ADDR
+              value: "go-grpc-server-service:50051"
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: go-grpc-client-service
+spec:
+  selector:
+    app: go-grpc-client
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP

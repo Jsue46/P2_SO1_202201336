@@ -1,33 +1,36 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-grpc-client
+  name: gateway-service
+  namespace: blackfriday
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: go-grpc-client
+      app: gateway-service
   template:
     metadata:
       labels:
-        app: go-grpc-client
+        app: gateway-service
     spec:
       containers:
-        - name: go-grpc-client
-          image: localhost:5001/go-grpc-client:latest
+        - name: gateway-service
+          image: us-central1-docker.pkg.dev/sopes-202201336/bf-repo/gateway:latest
+          imagePullPolicy: Always
           env:
             - name: GRPC_SERVER_ADDR
-              value: "go-grpc-server-service:50051"
+              value: "event-writer.blackfriday:50051"
           ports:
             - containerPort: 8080
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: go-grpc-client-service
+  name: gateway-service
+  namespace: blackfriday
 spec:
   selector:
-    app: go-grpc-client
+    app: gateway-service
   ports:
     - protocol: TCP
       port: 80

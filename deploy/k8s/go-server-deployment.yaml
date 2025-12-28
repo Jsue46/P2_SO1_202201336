@@ -1,33 +1,36 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: go-grpc-server
+  name: event-writer
+  namespace: blackfriday
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: go-grpc-server
+      app: event-writer
   template:
     metadata:
       labels:
-        app: go-grpc-server
+        app: event-writer
     spec:
       containers:
-        - name: go-grpc-server
-          image: localhost:5001/go-grpc-server:latest # Zot Registry
+        - name: event-writer
+          image: us-central1-docker.pkg.dev/sopes-202201336/bf-repo/writer:latest
+          imagePullPolicy: Always
           env:
             - name: KAFKA_BROKER
-              value: "my-cluster-kafka-bootstrap:9092" # Servicio K8s (Strimzi)
+              value: "my-cluster-kafka-bootstrap.strimzi:9092"
           ports:
             - containerPort: 50051
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: go-grpc-server-service
+  name: event-writer
+  namespace: blackfriday
 spec:
   selector:
-    app: go-grpc-server
+    app: event-writer
   ports:
     - protocol: TCP
       port: 50051

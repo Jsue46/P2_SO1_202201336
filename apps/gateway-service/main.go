@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// Conectar al servidor gRPC
-	conn, err := grpc.NewClient(direccioGrpc, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(direccioGrpc, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("no se pudo conectar: %v", err)
 	}

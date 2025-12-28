@@ -1,20 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rust-api
+  name: ingestion-api
+  namespace: blackfriday
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: rust-api
+      app: ingestion-api
   template:
     metadata:
       labels:
-        app: rust-api
+        app: ingestion-api
     spec:
       containers:
-        - name: rust-api
-          image: localhost:5001/rust-api:latest # Asegúrate que esto coincida con tu URL del registry Zot
+        - name: ingestion-api
+          image: us-central1-docker.pkg.dev/sopes-202201336/bf-repo/ingestion:latest
+          imagePullPolicy: Always
           resources:
             requests:
               cpu: "100m"
@@ -22,17 +24,18 @@ spec:
               cpu: "200m"
           env:
             - name: GO_API_URL
-              value: "http://go-grpc-client-service:80"
+              value: "http://gateway-service.blackfriday.svc.cluster.local"
           ports:
             - containerPort: 5000
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: rust-api-service
+  name: ingestion-api
+  namespace: blackfriday
 spec:
   selector:
-    app: rust-api
+    app: ingestion-api
   ports:
     - protocol: TCP
       port: 80
@@ -42,12 +45,13 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: rust-api-hpa
+  name: ingestion-api-hpa
+  namespace: blackfriday
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: rust-api
+    name: ingestion-api
   minReplicas: 1
   maxReplicas: 3
   metrics:

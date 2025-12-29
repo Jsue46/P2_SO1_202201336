@@ -17,16 +17,37 @@ spec:
         - name: ingestion-api
           image: us-central1-docker.pkg.dev/sopes-202201336/bf-repo/ingestion:latest
           imagePullPolicy: Always
+
+          # 🔥 CLAVE PARA HPA
           resources:
             requests:
               cpu: "100m"
+              memory: "128Mi"
             limits:
-              cpu: "200m"
+              cpu: "300m"
+              memory: "256Mi"
+
           env:
             - name: GO_API_URL
               value: "http://gateway-service.blackfriday.svc.cluster.local"
+
           ports:
             - containerPort: 5000
+
+          # 🔥 RECOMENDADO PARA ESCALADO REAL
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 20
 ---
 apiVersion: v1
 kind: Service

@@ -1,34 +1,108 @@
-# P2_SO1_202201336
+# Distributed Event-Driven Telemetry and Microservices Architecture
 
-Breve guía para preparar y ejecutar el proyecto localmente.
+Academic project developed for the **Operating Systems 1** course at the Universidad de San Carlos de Guatemala (Second Semester 2025).
 
-Requisitos:
-- Docker y docker-compose
-- Go 1.24 (para generar/compilar localmente)
-- protoc + plugins `protoc-gen-go` y `protoc-gen-go-grpc` si quiere regenerar protos
+This repository contains a high-throughput, distributed event-driven telemetry and ingestion system built with Go microservices, gRPC, Apache Kafka, Redis, and Grafana for end-to-end observability.
 
-Pasos rápidos:
+---
 
-1. Generar los protos Go (opcional si ya están en `apps/*/pb`):
+## Overview
 
-```bash
-cd deploy/local-dev
-../scripts/generate_protos.sh
+The system is designed to simulate, ingest, transport, and persist real-time telemetry events under heavy load. Ingestion requests are accepted via an HTTP gateway, dispatched over internal microservices via high-performance gRPC, streamed asynchronously through Apache Kafka message queues, cached using Redis, and monitored continuously with Grafana.
+
+---
+
+## Architecture
+
+```
+[ Client / Load Generator (Locust / k6) ]
+                    |
+                    v HTTP / REST
+         [ Ingestion API Service ]
+                    |
+                    v gRPC (Protocol Buffers)
+         [ Gateway / Router Service ]
+                    |
+                    v Event Stream
+         [ Apache Kafka Message Broker ]
+                    |
+         +----------+----------+
+         |                     |
+         v                     v
+[ Event Processor Worker ]  [ Event Writer Worker ]
+         |                     |
+         v                     v
+    [ Redis Cache ]     [ Persistent Storage ]
+
+Observability: Prometheus metrics collection with Grafana dashboards
+Deployment: Docker Compose orchestration for local and containerized execution
 ```
 
-2. Levantar los servicios (modo local con Kafka/Redis y apps):
+---
+
+## Key Features
+
+- Low-latency internal inter-service communication using gRPC and Protocol Buffers
+- Asynchronous decoupling and backpressure management via Apache Kafka partitions
+- In-memory event state caching with Redis
+- Comprehensive metrics instrumentation and Grafana dashboards for throughput and latency analysis
+- Automated protobuf code generation pipelines
+- Full Docker Compose environment definitions for reproducible deployments
+
+---
+
+## Technologies
+
+- **Programming Language:** Go (Golang)
+- **RPC Framework:** gRPC, Protocol Buffers
+- **Messaging:** Apache Kafka
+- **Caching:** Redis
+- **Observability:** Prometheus, Grafana
+- **Containerization:** Docker, Docker Compose
+
+---
+
+## Repository Structure
+
+```
+P2_SO1_202201336/
+├── apps/
+│   ├── ingestion-api/        # HTTP entrance service
+│   ├── gateway-service/      # gRPC routing gateway
+│   ├── event-processor/      # Real-time event consumer
+│   └── event-writer/         # Persistence worker
+├── deploy/                   # Docker Compose configurations
+├── messaging/                # Kafka broker and topic configurations
+├── observability/            # Grafana dashboard definitions
+├── scripts/                  # Protobuf build and automation scripts
+└── README.md
+```
+
+---
+
+## Execution Guide
+
+### Prerequisites
+- Docker and Docker Compose
+- Go 1.24+ (for local builds)
+- Protocol Buffers compiler (`protoc`) with Go plugins
+
+### Quick Start with Docker Compose
 
 ```bash
 cd deploy/local-dev
 docker compose -f docker-compose.yaml -f docker-compose.apps.yaml up --build
 ```
 
-3. (Opcional) Levantar Grafana para observabilidad:
+Access Grafana at `http://localhost:3000` to inspect real-time metrics.
 
-```bash
-docker compose -f docker-compose.grafana.yaml up
-```
+---
 
-Notas:
-- Los servicios Go usan módulos locales (`go-grpc-server`, `go-grpc-client`, `go-consumer`) y los paquetes generados por `protoc` se encuentran en `apps/*/pb`.
-- Si moviste archivos, asegúrate de regenerar protos con `scripts/generate_protos.sh`.
+## Academic Context
+
+| Field       | Detail                                         |
+|-------------|------------------------------------------------|
+| Course      | Operating Systems 1 (SO1)                      |
+| Institution | Universidad de San Carlos de Guatemala         |
+| Semester    | Second Semester 2025                           |
+| Author      | Estuardo Josue Vaquiax Reyes (202201336)       |
